@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Golosone Kiosk</title>
+<style>
+  @font-face{font-family:"Jakarta"; src:url(fonts/jakarta-400.woff2) format("woff2"); font-weight:400}
+  @font-face{font-family:"Jakarta"; src:url(fonts/jakarta-500.woff2) format("woff2"); font-weight:500}
+  @font-face{font-family:"Jakarta"; src:url(fonts/jakarta-600.woff2) format("woff2"); font-weight:600}
+  @font-face{font-family:"Jakarta"; src:url(fonts/jakarta-700.woff2) format("woff2"); font-weight:700}
+  @font-face{font-family:"Jakarta"; src:url(fonts/jakarta-800.woff2) format("woff2"); font-weight:800}
+  :root{
+    --wine:#6F3031; --wine-d:#552425; --wine-soft:#F5ECEA; --wine-line:#EADBD8;
+    --paper:#FFFCFA; --white:#fff; --ink:#2A1C1B; --muted:#8C7471;
+    --ok:#2F7D5A; --ok-soft:#E5F2EB; --err:#C24A12; --err-soft:#FBEDE5;
+    --r:2.2vh; --shadow:0 .6vh 2.4vh rgba(111,48,49,.10);
+  }
+  *{box-sizing:border-box; -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; height:100%; background:var(--paper); color:var(--ink);
+    font-family:"Jakarta","Segoe UI",system-ui,sans-serif; overflow:hidden; touch-action:manipulation;
+    -webkit-font-smoothing:antialiased}
+  body{display:flex; flex-direction:column}
+  button{font-family:inherit; cursor:pointer}
+  h2{font-weight:800; letter-spacing:-.025em; line-height:1.08; margin:0}
+  p{margin:0}
+
+  /* HEADER */
+  header{display:flex; align-items:center; gap:2vw; padding:2.2vh 4vw; background:var(--white);
+    border-bottom:1px solid var(--wine-line)}
+  .logo{height:9.5vh; width:auto; display:block}
+  .brand{display:flex; flex-direction:column; justify-content:center; gap:.3vh; padding-left:2vw;
+    border-left:1px solid var(--wine-line)}
+  .brand h1{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+  .brand p{font-size:1.9vh; font-weight:600; color:var(--wine); letter-spacing:.14em; text-transform:uppercase}
+  .brand small{font-size:1.7vh; color:var(--muted); font-weight:500}
+  .staffbtn{margin-left:auto; width:6vh; height:6vh; border-radius:50%; border:0; background:transparent;
+    color:var(--muted); font-size:2.6vh; opacity:.35}
+  .demo{position:fixed; bottom:1vh; right:1vw; background:var(--err); color:#fff; padding:.6vh 1.2vw;
+    border-radius:99px; font-size:1.6vh; font-weight:700}
+
+  main{flex:1; display:flex; flex-direction:column; padding:3.5vh 5vw 2vh; min-height:0}
+  .screen{display:none; flex:1; flex-direction:column; min-height:0; animation:in .35s ease}
+  .screen.on{display:flex}
+  @keyframes in{from{opacity:0; transform:translateY(1.2vh)}}
+
+  /* IDLE */
+  #idle{align-items:center; justify-content:center; text-align:center; gap:3.2vh}
+  .scanner{position:relative; width:42vh; height:30vh; border-radius:3vh; background:var(--white);
+    box-shadow:var(--shadow); display:grid; place-items:center; overflow:hidden; border:1px solid var(--wine-line)}
+  .bars{display:flex; gap:.9vh; height:15vh; align-items:stretch}
+  .bars i{display:block; background:var(--ink); border-radius:.3vh}
+  .scanline{position:absolute; left:6%; right:6%; height:.5vh; border-radius:99px; background:#E0322F;
+    box-shadow:0 0 2vh 0.6vh rgba(224,50,47,.45); animation:scan 2.2s ease-in-out infinite}
+  @keyframes scan{0%,100%{top:18%} 50%{top:78%}}
+  #idle h2{font-size:6.2vh; color:var(--ink); margin-top:1.5vh}
+  #idle h2 em{font-style:normal; color:var(--wine)}
+  #idle .sub{font-size:2.7vh; color:var(--muted); font-weight:500; max-width:70vw}
+  .steps{display:flex; gap:1.6vw; margin-top:3vh}
+  .steps div{display:flex; align-items:center; gap:1vw; padding:1.3vh 2vw; border-radius:99px;
+    background:var(--white); border:1px solid var(--wine-line); font-size:2vh; font-weight:600; color:var(--ink)}
+  .steps b{display:grid; place-items:center; width:3.4vh; height:3.4vh; border-radius:50%;
+    background:var(--wine); color:#fff; font-size:1.7vh}
+
+  /* CARRELLO */
+  .cart-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2vh}
+  #cart h2{font-size:4.4vh}
+  .cart-head span{font-size:2vh; color:var(--muted); font-weight:600}
+  .list{flex:1; overflow:auto; background:var(--white); border-radius:var(--r); padding:.6vh 2.6vw;
+    box-shadow:var(--shadow); border:1px solid var(--wine-line)}
+  .row{display:flex; align-items:center; gap:2.2vw; padding:2vh 0; border-bottom:1px solid var(--wine-soft); font-size:2.7vh}
+  .row:last-child{border:0}
+  .row .q{min-width:7vh; text-align:center; padding:.6vh 0; border-radius:99px; background:var(--wine-soft);
+    color:var(--wine); font-weight:700; font-size:2.2vh}
+  .row .d{flex:1; font-weight:600; text-transform:capitalize}
+  .row .t{font-weight:700; white-space:nowrap; font-variant-numeric:tabular-nums}
+  .totbox{display:flex; justify-content:space-between; align-items:center; margin:2.2vh 0;
+    padding:2.4vh 3vw; border-radius:var(--r); background:var(--wine-soft)}
+  .totbox span:first-child{font-size:2.6vh; font-weight:700; color:var(--wine); text-transform:uppercase; letter-spacing:.12em}
+  .totbox .amt{font-size:7vh; font-weight:800; letter-spacing:-.03em; color:var(--ink); font-variant-numeric:tabular-nums}
+
+  .pay{border:0; border-radius:var(--r); background:var(--wine); color:#fff; width:100%;
+    min-height:15vh; font-size:4.6vh; font-weight:800; letter-spacing:-.01em; display:flex; align-items:center;
+    justify-content:center; gap:2.5vw; box-shadow:0 1.2vh 3vh rgba(111,48,49,.35); transition:transform .1s}
+  .pay:active{transform:scale(.98); background:var(--wine-d)}
+  .pay svg{width:6.5vh; height:6.5vh}
+  .secondary{margin-top:1.8vh; border:2px solid var(--wine-line); background:var(--white); color:var(--muted);
+    border-radius:var(--r); padding:2.2vh; font-size:2.5vh; font-weight:700; width:100%}
+  .secondary:active{background:var(--wine-soft)}
+
+  /* STATI */
+  #paying,#thanks,#offline,#payfail,#busy{align-items:center; justify-content:center; text-align:center; gap:2.6vh}
+  #paying h2,#thanks h2,#payfail h2,#busy h2,#offline h2{font-size:6vh}
+  #paying p,#thanks p,#payfail p,#busy p,#offline p{font-size:2.8vh; color:var(--muted); font-weight:500; max-width:75vw}
+  #payfail .pay,#payfail .secondary{max-width:78vw}
+  .big{font-size:9vh; font-weight:800; letter-spacing:-.035em; color:var(--wine); font-variant-numeric:tabular-nums}
+  .card{width:36vh; height:23vh; border-radius:2.6vh; position:relative; margin-bottom:2vh;
+    background:linear-gradient(135deg,var(--wine) 0%,var(--wine-d) 100%); box-shadow:0 2vh 4vh rgba(111,48,49,.35);
+    animation:tap 1.8s ease-in-out infinite}
+  .card:before{content:""; position:absolute; left:3.2vh; top:6vh; width:6vh; height:4.6vh; border-radius:.9vh;
+    background:linear-gradient(135deg,#E9C98A,#C9A15A)}
+  .card .nfc{position:absolute; right:3vh; top:3vh; width:5.5vh; height:5.5vh; color:rgba(255,255,255,.7)}
+  @keyframes tap{50%{transform:translateY(-2.5vh) rotate(-3deg)}}
+  #payStatus{font-size:2vh!important; padding:1vh 2vw; border-radius:99px; background:var(--wine-soft); color:var(--wine)!important;
+    font-weight:600!important}
+  #payStatus:empty{display:none}
+  .icon{width:16vh; height:16vh; border-radius:50%; display:grid; place-items:center; margin-bottom:1vh}
+  .icon svg{width:8vh; height:8vh}
+  .icon.ok{background:var(--ok-soft); color:var(--ok)}
+  .icon.err{background:var(--err-soft); color:var(--err)}
+  .icon.ok svg path{stroke-dasharray:30; stroke-dashoffset:30; animation:draw .5s .15s ease forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .spinner{width:12vh; height:12vh; border-radius:50%; border:1.2vh solid var(--wine-soft); border-top-color:var(--wine);
+    animation:spin .9s linear infinite; margin-bottom:1vh}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #failAmt{font-size:6vh}
+
+  footer{padding:1.6vh 4vw 2.2vh; font-size:1.9vh; color:var(--muted); text-align:center; font-weight:500}
+  footer b{color:var(--wine)}
+
+  /* BANNER */
+  #banner{position:fixed; left:6vw; right:6vw; top:14vh; padding:2.6vh 3vw; border-radius:var(--r);
+    font-size:3vh; font-weight:700; text-align:center; display:none; z-index:5; box-shadow:0 1.5vh 4vh rgba(42,28,27,.25)}
+  #banner.err{display:block; background:var(--err); color:#fff}
+  #banner.info{display:block; background:var(--ink); color:#fff}
+
+  /* CONFERMA ANNULLO */
+  #confirm{position:fixed; inset:0; background:rgba(42,28,27,.55); backdrop-filter:blur(.6vh);
+    display:none; align-items:flex-end; justify-content:center; z-index:6}
+  #confirm.on{display:flex}
+  #confirm .box{background:var(--white); border-radius:3.4vh 3.4vh 0 0; padding:5vh 5vw 6vh; width:100%; text-align:center;
+    animation:up .25s ease}
+  @keyframes up{from{transform:translateY(100%)}}
+  #confirm h3{font-size:4.2vh; font-weight:800; letter-spacing:-.02em; margin:0 0 1vh}
+  #confirm .hint{font-size:2.3vh; color:var(--muted); margin-bottom:4vh}
+  #confirm .btns{display:grid; grid-template-columns:1fr 1fr; gap:2.5vw}
+  #confirm button{border:0; border-radius:var(--r); padding:3.6vh 0; font-size:3vh; font-weight:800}
+  #confirm .no{background:var(--wine-soft); color:var(--wine)}
+  #confirm .yes{background:var(--err); color:#fff}
+
+  /* PERSONALE */
+  #pin{position:fixed; inset:0; background:rgba(42,28,27,.6); display:none; align-items:center; justify-content:center; z-index:7}
+  #pin.on{display:flex}
+  .pinbox{background:var(--white); border-radius:3vh; padding:4vh; width:min(84vw,62vh); text-align:center}
+  .pinbox .title{font-size:2.4vh; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.12em}
+  .pinbox .dots{font-size:5vh; letter-spacing:2vh; height:7vh; color:var(--wine)}
+  .keys{display:grid; grid-template-columns:repeat(3,1fr); gap:1.4vh; margin:2vh 0}
+  .keys button{font-size:3.6vh; font-weight:700; padding:2.2vh 0; border-radius:1.6vh; border:0; background:var(--wine-soft); color:var(--ink)}
+  .pinact{display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh}
+  .pinact button{font-size:2vh; font-weight:700; padding:2vh 0; border-radius:1.6vh; border:0; background:var(--ink); color:#fff}
+  .pinact button[data-a="exit"]{background:var(--err)}
+  #logview{position:fixed; inset:0; background:#141010; color:#ddd; display:none; flex-direction:column; z-index:9}
+  #logview.on{display:flex}
+  #logview pre{flex:1; margin:0; padding:1.5vh 2vw; overflow:auto; font:1.45vh Consolas,monospace; white-space:pre-wrap; user-select:text}
+  #logview button{font-size:2.8vh; font-weight:700; padding:2vh; border:0; background:var(--wine); color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" id="logo" src="logo.svg" alt="Il Golosone" draggable="false">
+  <div class="brand"><h1 id="bname">Il Golosone</h1><p>Cassa self-service</p><small id="bsub">Panificio e Pasticceria</small></div>
+  <button class="staffbtn" id="staffBtn" title="Personale">✕</button>
+</header>
+
+<main>
+  <section class="screen on" id="idle">
+    <div class="scanner">
+      <div class="bars"><i style="width:.8vh"></i><i style="width:2vh"></i><i style="width:.6vh"></i><i style="width:1.4vh"></i><i style="width:.8vh"></i><i style="width:2.4vh"></i><i style="width:.6vh"></i><i style="width:1.2vh"></i><i style="width:.8vh"></i><i style="width:2vh"></i><i style="width:.6vh"></i><i style="width:1.6vh"></i></div>
+      <div class="scanline"></div>
+    </div>
+    <h2>Scansiona il tuo <em>scontrino</em></h2>
+    <p class="sub">Avvicina il codice a barre al lettore rosso</p>
+    <div class="steps"><div><b>1</b>Scansiona</div><div><b>2</b>Controlla</div><div><b>3</b>Paga con carta</div></div>
+  </section>
+
+  <section class="screen" id="cart">
+    <div class="cart-head"><h2>La tua spesa</h2><span>Controlla gli articoli</span></div>
+    <div class="list" id="list"></div>
+    <div class="totbox"><span>Totale</span><span class="amt" id="tot">€ 0,00</span></div>
+    <button class="pay" id="payBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/></svg>
+      Paga con carta
+    </button>
+    <button class="secondary" id="cancelBtn" style="display:none">Annulla e ricomincia</button>
+  </section>
+
+  <section class="screen" id="paying">
+    <div class="card"><svg class="nfc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8.5 8.5a5 5 0 0 1 0 7M12 6a8.5 8.5 0 0 1 0 12M15.5 3.5a12 12 0 0 1 0 17"/></svg></div>
+    <div class="big" id="payAmt"></div>
+    <h2>Appoggia la carta sul POS</h2>
+    <p>Segui le istruzioni sul terminale di pagamento</p>
+    <p id="payStatus"></p>
+  </section>
+
+  <section class="screen" id="payfail">
+    <div class="icon err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>
+    <h2>Pagamento non riuscito</h2>
+    <p id="failMsg">Il pagamento con carta non è andato a buon fine.</p>
+    <div class="big" id="failAmt"></div>
+    <button class="pay" id="retryBtn">Riprova</button>
+    <button class="secondary" id="failCancelBtn">Annulla la spesa</button>
+    <p style="font-size:2.2vh">Oppure chiedi al banco</p>
+  </section>
+
+  <section class="screen" id="busy">
+    <div class="spinner"></div>
+    <h2>Un momento…</h2>
+    <p>Sto cancellando la spesa</p>
+  </section>
+
+  <section class="screen" id="thanks">
+    <div class="icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2>Grazie!</h2>
+    <p>Pagamento completato. Buona giornata e a presto!</p>
+  </section>
+
+  <section class="screen" id="offline">
+    <div class="icon err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></div>
+    <h2>Cassa momentaneamente non disponibile</h2>
+    <p>Rivolgiti al banco, grazie</p>
+  </section>
+</main>
+
+<footer>Hai bisogno di aiuto? <b>Chiedi al banco</b></footer>
+
+<div id="banner"></div>
+
+<div id="confirm"><div class="box">
+  <h3>Vuoi cancellare tutta la spesa?</h3>
+  <p class="hint">Dovrai scansionare di nuovo lo scontrino</p>
+  <div class="btns"><button class="no" id="cNo">No, torna indietro</button><button class="yes" id="cYes">Sì, cancella</button></div>
+</div></div>
+
+<div id="logview"><pre id="logtext"></pre><button id="logclose">Chiudi log</button></div>
+
+<div id="pin">
+  <div class="pinbox">
+    <div class="title">Area personale</div>
+    <div class="dots" id="dots"></div>
+    <div class="keys" id="keys"></div>
+    <div class="pinact">
+      <button data-a="back">Annulla</button>
+      <button data-a="pause">Pausa 60s</button>
+      <button data-a="log">Log</button>
+      <button data-a="exit">Esci</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let MOCK = false;                          // demo solo se aperto in un browser normale
+let api = null, view = "idle", payStarted = 0, sawPos = false, payResultId = 0, cfg = {};
+
+function show(id){ if(view===id) return; view=id;
+  document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on", s.id===id)); }
+function money(s){ s=String(s||"0,00").replace("€","").trim(); return "€ " + s; }
+function num(s){ return parseFloat(String(s||"0").replace(/\./g,"").replace(",", ".")) || 0; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- demo nel browser ---------- */
+const mock = {
+  st:{connected:true,total:"0,00",pieces:0,items:[],has_cart:false,dialog:false,busy:false,pos_active:false,pos_status:"",pay_result:{id:0},scanning:false,scan_error:0,cancel_error:0,cancel_ok:0,pay_error:0},
+  get_state(){ return Promise.resolve(this.st); },
+  scan(){ this.st.items=[{desc:"Cornetto crema",qta:"2",tot:"3,00"},{desc:"Torta Sacher 6 porz.",qta:"1",tot:"18,00"},{desc:"Cappuccino",qta:"1",tot:"1,60"}];
+          this.st.total="22,60"; this.st.pieces=4; this.st.has_cart=true; return Promise.resolve(); },
+  pay(){ this.n=(this.n||0)+1; const ok=this.n%2===0; const st=this.st;   // demo: un pagamento no, uno si'
+         st.pos_active=true; st.pos_status="Inserire o avvicinare la carta";
+         setTimeout(()=>{ st.pos_active=false; st.pos_status="";
+           if(ok){ st.items=[]; st.pieces=0; st.has_cart=false; st.pay_result={id:st.pay_result.id+1,ok:true}; }
+           else st.pay_result={id:st.pay_result.id+1,ok:false,msg:"Cancelled"}; }, 3000); return Promise.resolve(); },
+  cancel(){ this.st.busy=true; setTimeout(()=>{ this.st.busy=false; this.st.items=[]; this.st.pieces=0; this.st.has_cart=false; this.st.cancel_ok=Date.now(); },1500); return Promise.resolve(); },
+  config(){ return Promise.resolve({brand:{nome:"Il Golosone",sottotitolo:"Panificio e Pasticceria · Cernusco sul Naviglio"},cancel_enabled:true}); },
+  refocus(){ return Promise.resolve(); },
+  get_log(p){ return Promise.resolve(p==="1234" ? "12:00:00 demo log\n12:00:01 annullo riuscito" : null); },
+  staff_exit(p){ return Promise.resolve(p==="1234"); }, staff_pause(p){ return Promise.resolve(p==="1234"); }
+};
+
+/* ---------- loop ---------- */
+async function tick(){
+  try{
+    const s = await api.get_state();
+    if(!s.connected){ show("offline"); return; }
+    handleFlags(s);
+    const cart = !!s.has_cart;
+    if(s.busy){ show("busy"); return; }
+    if(view==="busy"){ show(cart?"cart":"idle"); }
+    if(view==="paying"){
+      const t = Date.now()-payStarted;
+      $("payStatus").textContent = s.pos_status ? ("Terminale: " + s.pos_status) : "";
+      if(s.pay_error && s.pay_error!==lastPayErr){ lastPayErr=s.pay_error; payFail("Il pagamento non è partito."); return; }
+      const r = s.pay_result || {};
+      if(r.id && r.id!==payResultId){ payResultId=r.id;
+        if(r.ok){ thanks(); } else { payFail("Il pagamento con carta non è andato a buon fine."); }
+        return; }
+      if(!cart && t>1200){ thanks(); return; }
+      if(s.pos_active) sawPos = true;
+      if(cart && !s.pos_active && !s.dialog && t>(sawPos?20000:12000)){ payFail("Il terminale non ha risposto."); return; }
+      return;
+    }
+    if(view==="thanks"){ if(cart){ renderCart(s); show("cart"); } return; }
+    if(view==="payfail"){ if(!cart) show("idle"); return; }
+    if(cart){ renderCart(s); show("cart"); } else show("idle");
+  }catch(e){ console.log(e); }
+}
+function thanks(){ show("thanks"); setTimeout(()=>{ if(view==="thanks") show("idle"); }, 4000); }
+function payFail(msg){ $("failMsg").textContent=msg; $("failAmt").textContent=$("tot").textContent; show("payfail"); }
+function renderCart(s){
+  $("tot").textContent = money(s.total);
+  $("list").innerHTML = s.items.length
+    ? s.items.map(i=>`<div class="row"><span class="q">${esc(i.qta)}×</span><span class="d">${esc(String(i.desc).toLowerCase())}</span><span class="t">${money(i.tot)}</span></div>`).join("")
+    : `<div class="row"><span class="d">${s.pieces||""} articoli nel carrello</span></div>`;
+}
+
+/* ---------- pagamento ---------- */
+function startPay(){
+  $("payAmt").textContent = $("tot").textContent;
+  payStarted = Date.now(); sawPos = false; $("payStatus").textContent=""; show("paying"); api.pay();
+}
+$("payBtn").onclick = startPay;
+$("retryBtn").onclick = startPay;
+$("failCancelBtn").onclick = ()=> $("confirm").classList.add("on");
+$("cancelBtn").onclick = ()=> $("confirm").classList.add("on");
+$("cNo").onclick = ()=> $("confirm").classList.remove("on");
+$("cYes").onclick = ()=>{ $("confirm").classList.remove("on"); cancelAt=Date.now(); show("busy"); api.cancel(); };
+
+/* ---------- banner ---------- */
+let scanShownAt=0, lastCancelOk=0, lastPayErr=0, bannerT, lastErr=0, lastCancelErr=0, cancelAt=0;
+function flash(kind,msg,ms){ const b=$("banner"); b.className=kind; b.textContent=msg;
+  clearTimeout(bannerT); if(ms) bannerT=setTimeout(()=>b.className="",ms); }
+function handleFlags(s){
+  if(s.scan_error && s.scan_error!==lastErr){ lastErr=s.scan_error;
+    flash("err","⚠️ Codice non letto. Riprova, oppure chiedi al banco",6000); }
+  else if(s.scanning && $("banner").className!=="err" && !scanShownAt){ scanShownAt=Date.now(); flash("info","Lettura in corso…",6000); }
+  if(!s.scanning) scanShownAt=0;
+  else if(!s.scanning && $("banner").className==="info" && Date.now()-cancelAt>2500) $("banner").className="";
+  if(s.cancel_error && s.cancel_error!==lastCancelErr){ lastCancelErr=s.cancel_error;
+    if(Date.now()-cancelAt<30000) flash("err","Non riesco a cancellare la spesa: chiedi al banco",6000); }
+  if(s.cancel_ok && s.cancel_ok!==lastCancelOk){ lastCancelOk=s.cancel_ok;
+    if(Date.now()-cancelAt<30000) flash("info","Spesa cancellata ✓",2500); }
+}
+
+/* ---------- scanner (fallback se l'overlay ha il focus) ---------- */
+let buf="", last=0;
+document.addEventListener("keydown", e=>{
+  if($("pin").classList.contains("on")) return;
+  const now=Date.now(); if(now-last>80) buf=""; last=now;
+  if(e.key==="Enter"){ if(buf.length>=3) api.scan(buf); buf=""; e.preventDefault(); }
+  else if(e.key.length===1) buf+=e.key;
+});
+
+/* ---------- uscita personale: tieni premuto il logo 3 secondi ---------- */
+let hold, pin="";
+$("logo").addEventListener("pointerdown", ()=> hold=setTimeout(openPin, 3000));
+["pointerup","pointerleave"].forEach(ev=>$("logo").addEventListener(ev, ()=>clearTimeout(hold)));
+$("staffBtn").onclick = ()=>openPin();
+function openPin(){ pin=""; $("dots").textContent=""; $("pin").classList.add("on"); }
+$("keys").innerHTML=[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map(k=>`<button data-k="${k}">${k}</button>`).join("");
+$("keys").onclick=e=>{ const k=e.target.dataset.k; if(k===undefined||k==="") return;
+  pin = k==="⌫" ? pin.slice(0,-1) : (pin+k).slice(0,8); $("dots").textContent="•".repeat(pin.length); };
+document.querySelector(".pinact").onclick=async e=>{
+  const a=e.target.dataset.a; if(!a) return;
+  if(a==="back"){ $("pin").classList.remove("on"); return; }
+  if(a==="log"){ const t = await api.get_log(pin);
+    if(t===null){ pin=""; $("dots").textContent="PIN errato"; return; }
+    $("logtext").textContent=t; $("pin").classList.remove("on"); $("logview").classList.add("on");
+    $("logtext").scrollTop=1e9; return; }
+  const ok = a==="exit" ? await api.staff_exit(pin) : await api.staff_pause(pin);
+  if(ok) $("pin").classList.remove("on"); else { pin=""; $("dots").textContent="PIN errato"; }
+};
+$("logclose").onclick=()=>$("logview").classList.remove("on");
+document.addEventListener("contextmenu", e=>e.preventDefault());
+/* dopo ogni tocco il focus torna a Passepartout, cosi' il lettore scrive li' */
+document.addEventListener("pointerup", ()=>{ if(api && !MOCK && !$("pin").classList.contains("on")) setTimeout(()=>api.refocus(), 150); });
+
+/* ---------- avvio ---------- */
+async function start(){
+  api = MOCK ? mock : window.pywebview.api;
+  cfg = await api.config();
+  $("bname").textContent = cfg.brand.nome; $("bsub").textContent = cfg.brand.sottotitolo;
+  $("cancelBtn").style.display = cfg.cancel_enabled ? "block" : "none";
+  if(MOCK){ document.body.insertAdjacentHTML("beforeend",'<div class="demo">DEMO – dati finti</div>'); let n=0; $("idle").onclick = ()=>{ if(++n%3===0){ mock.st.scan_error=Date.now(); } else api.scan("DEMO"); }; }
+  try{ const s0 = await api.get_state(); payResultId = (s0.pay_result||{}).id||0; }catch(e){}
+  setInterval(tick, 300);
+}
+let started=false;
+function boot(mock){ if(started) return; started=true; MOCK=mock; start(); }
+if(window.pywebview && window.pywebview.api) boot(false);
+window.addEventListener("pywebviewready", ()=>boot(false));
+setTimeout(()=>{ if(!started){
+  if(location.protocol==="file:" || location.search.includes("demo")) boot(true);   // anteprima nel browser
+  else { show("offline"); }                                                            // app senza bridge: niente dati finti
+}}, 3000);
+</script>
+</body>
+</html>

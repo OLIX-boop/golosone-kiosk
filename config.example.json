@@ -1,0 +1,121 @@
+{
+  "window_title_re": ".*Passepartout Retail.*KIOSK.*",
+  "staff_pin": "CAMBIAMI",
+  "staff_pause_s": 60,
+  "exit_hotkey": "ctrl+alt+q",
+  "poll_ms": 200,
+  "click_mode": "post",
+  "debug": false,
+  "brand": {
+    "nome": "Il Golosone",
+    "sottotitolo": "Panificio e Pasticceria · Cernusco sul Naviglio"
+  },
+  "controls": {
+    "code_field": {
+      "auto_id": "ALFABuffer",
+      "control_type": "Edit"
+    },
+    "total": {
+      "auto_id": "ETotaleDaPagare",
+      "control_type": "Text"
+    },
+    "pieces": {
+      "auto_id": "ETotPezzi",
+      "control_type": "Text"
+    },
+    "grid": {
+      "auto_id": "DGVociLunga",
+      "control_type": "Table"
+    }
+  },
+  "grid_columns": {
+    "descrizione": "Descrizione",
+    "qta": "Quantita",
+    "totale": "TotaleDiRiga"
+  },
+  "pay": {
+    "path": [
+      {
+        "auto_id": "LATFSx1",
+        "control_type": "Pane"
+      }
+    ],
+    "x": 0.5,
+    "y": 0.5
+  },
+  "scanner": {
+    "capture": false,
+    "min_len": 4,
+    "max_gap_ms": 60,
+    "timeout_s": 2.5,
+    "method": "auto"
+  },
+  "ignore_windows_re": "",
+  "cancel_macro": [
+    {
+      "click": {
+        "rel": [
+          28,
+          148
+        ]
+      },
+      "expect": {
+        "path": [
+          {
+            "auto_id": "Cancella"
+          }
+        ]
+      },
+      "expect_timeout": 2.0
+    },
+    {
+      "click": {
+        "path": [
+          {
+            "auto_id": "Cancella"
+          }
+        ]
+      },
+      "timeout": 2,
+      "expect": {
+        "window": "Cancellazione"
+      },
+      "expect_timeout": 2.0
+    },
+    {
+      "click": {
+        "child": {
+          "window": "Cancellazione",
+          "text": "OK"
+        }
+      },
+      "timeout": 3,
+      "expect": {
+        "window_gone": "Cancellazione"
+      },
+      "expect_timeout": 2.0
+    }
+  ],
+  "cancel_click_mode": "real",
+  "pos_dialogs": {
+    "pos_window_re": "Pagamento ETF.*POS",
+    "pos_close_button": "Chiudi",
+    "pos_fail_re": "cancel|annull|rifiut|negat|errore|error|declin|fail|timeout|non autoriz|interrott",
+    "error_window_re": "Attenzione",
+    "error_text_re": "errore nel pagamento POS",
+    "error_cancel_button": "Annulla",
+    "never_click_re": "emissione|prosegui|scontrino"
+  },
+  "cancel_fallback_real": true,
+  "click_through": true,
+  "cache_s": 30.0,
+  "scan_error_dialogs": {
+    "enabled": true,
+    "text_re": "non trovat|inesistent|non valid|errat|sconosciut|non presente|non codificat|errore",
+    "buttons": [
+      "OK",
+      "Ok",
+      "Chiudi"
+    ]
+  }
+}

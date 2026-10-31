@@ -1,0 +1,14 @@
+# configurazione reale della cassa (contiene il PIN): NON va su GitHub
+config.json
+# log e file diagnostici
+kiosk_log.txt
+kiosk_log.txt.old
+test_lettura.txt
+calibra_log.txt
+controlli_passepartout.txt
+# build
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc

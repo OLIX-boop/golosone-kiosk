@@ -1,0 +1,6 @@
+pywebview>=5.0
+pywinauto>=0.6.8
+pywin32
+comtypes
+pyinstaller
+keyboard
