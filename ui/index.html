@@ -146,7 +146,8 @@
   .pinbox .dots{font-size:5vh; letter-spacing:2vh; height:7vh; color:var(--wine)}
   .keys{display:grid; grid-template-columns:repeat(3,1fr); gap:1.4vh; margin:2vh 0}
   .keys button{font-size:3.6vh; font-weight:700; padding:2.2vh 0; border-radius:1.6vh; border:0; background:var(--wine-soft); color:var(--ink)}
-  .pinact{display:grid; grid-template-columns:repeat(4,1fr); gap:1.2vh}
+  .pinact{display:grid; grid-template-columns:repeat(3,1fr); gap:1.2vh}
+  .pinbox .ver{font-size:1.7vh; color:var(--muted); margin-top:.4vh}
   .pinact button{font-size:2vh; font-weight:700; padding:2vh 0; border-radius:1.6vh; border:0; background:var(--ink); color:#fff}
   .pinact button[data-a="exit"]{background:var(--err)}
   #logview{position:fixed; inset:0; background:#141010; color:#ddd; display:none; flex-direction:column; z-index:9}
@@ -236,12 +237,14 @@
 <div id="pin">
   <div class="pinbox">
     <div class="title">Area personale</div>
+    <div class="ver" id="ver"></div>
     <div class="dots" id="dots"></div>
     <div class="keys" id="keys"></div>
     <div class="pinact">
       <button data-a="back">Annulla</button>
       <button data-a="pause">Pausa 60s</button>
       <button data-a="log">Log</button>
+      <button data-a="update">Aggiorna</button>
       <button data-a="exit">Esci</button>
     </div>
   </div>
@@ -270,10 +273,10 @@ const mock = {
            if(ok){ st.items=[]; st.pieces=0; st.has_cart=false; st.pay_result={id:st.pay_result.id+1,ok:true}; }
            else st.pay_result={id:st.pay_result.id+1,ok:false,msg:"Cancelled"}; }, 3000); return Promise.resolve(); },
   cancel(){ this.st.busy=true; setTimeout(()=>{ this.st.busy=false; this.st.items=[]; this.st.pieces=0; this.st.has_cart=false; this.st.cancel_ok=Date.now(); },1500); return Promise.resolve(); },
-  config(){ return Promise.resolve({brand:{nome:"Il Golosone",sottotitolo:"Panificio e Pasticceria · Cernusco sul Naviglio"},cancel_enabled:true}); },
+  config(){ return Promise.resolve({brand:{nome:"Il Golosone",sottotitolo:"Panificio e Pasticceria · Cernusco sul Naviglio"},cancel_enabled:true,version:"demo"}); },
   refocus(){ return Promise.resolve(); },
   get_log(p){ return Promise.resolve(p==="1234" ? "12:00:00 demo log\n12:00:01 annullo riuscito" : null); },
-  staff_exit(p){ return Promise.resolve(p==="1234"); }, staff_pause(p){ return Promise.resolve(p==="1234"); }
+  staff_exit(p){ return Promise.resolve(p==="1234"); }, staff_update(p){ return Promise.resolve(p==="1234"); }, staff_pause(p){ return Promise.resolve(p==="1234"); }
 };
 
 /* ---------- loop ---------- */
@@ -365,6 +368,8 @@ document.querySelector(".pinact").onclick=async e=>{
     if(t===null){ pin=""; $("dots").textContent="PIN errato"; return; }
     $("logtext").textContent=t; $("pin").classList.remove("on"); $("logview").classList.add("on");
     $("logtext").scrollTop=1e9; return; }
+  if(a==="update"){ const ok = await api.staff_update(pin);
+    if(ok){ $("dots").textContent="Aggiornamento…"; } else { pin=""; $("dots").textContent="PIN errato"; } return; }
   const ok = a==="exit" ? await api.staff_exit(pin) : await api.staff_pause(pin);
   if(ok) $("pin").classList.remove("on"); else { pin=""; $("dots").textContent="PIN errato"; }
 };
@@ -377,6 +382,7 @@ document.addEventListener("pointerup", ()=>{ if(api && !MOCK && !$("pin").classL
 async function start(){
   api = MOCK ? mock : window.pywebview.api;
   cfg = await api.config();
+  $("ver").textContent = cfg.version ? "Versione " + cfg.version : "";
   $("bname").textContent = cfg.brand.nome; $("bsub").textContent = cfg.brand.sottotitolo;
   $("cancelBtn").style.display = cfg.cancel_enabled ? "block" : "none";
   if(MOCK){ document.body.insertAdjacentHTML("beforeend",'<div class="demo">DEMO – dati finti</div>'); let n=0; $("idle").onclick = ()=>{ if(++n%3===0){ mock.st.scan_error=Date.now(); } else api.scan("DEMO"); }; }

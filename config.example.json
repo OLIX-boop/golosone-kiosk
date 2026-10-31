@@ -117,5 +117,10 @@
       "Ok",
       "Chiudi"
     ]
+  },
+  "update": {
+    "enabled": true,
+    "repo": "OLIX-boop/golosone-kiosk",
+    "check_timeout_s": 6
   }
 }

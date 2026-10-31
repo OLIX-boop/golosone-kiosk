@@ -1121,7 +1121,27 @@ class Api:
         cmds.put(("cancel", None))
 
     def config(self):
-        return {"brand": CFG["brand"], "cancel_enabled": bool(CFG.get("cancel_macro"))}
+        try:
+            with open(os.path.join(BASE, "VERSION"), encoding="utf-8") as f:
+                ver = f.read().strip()
+        except Exception:
+            ver = "sviluppo"
+        return {"brand": CFG["brand"], "cancel_enabled": bool(CFG.get("cancel_macro")), "version": ver}
+
+    def staff_update(self, pin):
+        """Chiude l'overlay con codice 3: avvia.py cerca l'aggiornamento e lo riapre."""
+        if str(pin) != str(CFG["staff_pin"]):
+            return False
+
+        def bye():
+            time.sleep(0.2)
+            log("aggiornamento richiesto dal personale")
+            try:
+                window.destroy()
+            finally:
+                os._exit(3)
+        threading.Thread(target=bye, daemon=True).start()
+        return True
 
     def staff_exit(self, pin):
         if str(pin) == str(CFG["staff_pin"]):

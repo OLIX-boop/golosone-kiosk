@@ -80,6 +80,7 @@ Passepartout resta il sistema vero (articoli, scontrino fiscale, POS): nessuna m
 | Lettura del gestionale | Windows UI Automation via `comtypes` (`FindFirst`, `CacheRequest`) e `pywinauto` |
 | Interazione | `ctypes` su `user32` (chiamate asincrone), `SendInput`, hook tastiera passivo |
 | Configurazione | `config.json`: ID dei controlli, macro, testi dei popup. Se il gestionale cambia layout si aggiorna la configurazione, non il codice |
+| Distribuzione | aggiornamento automatico dalle GitHub Releases, con backup, verifica e ritorno automatico alla versione precedente (`avvia.py`) |
 
 ## Sfide tecniche
 
@@ -111,8 +112,27 @@ py app.py --test     :: verifica che legga carrello, totale e pezzi
 py app.py            :: avvia l'overlay
 ```
 
-Per il personale: `crea_collegamento.bat` crea sul desktop il collegamento **Cassa Golosone**
-(avvio senza finestra del prompt). Exe opzionale con `build.bat`.
+Per il personale: `crea_collegamento.bat` crea sul desktop il collegamento **Cassa Golosone**,
+che avvia `avvia.py` (aggiornamento automatico + sorveglianza, senza finestra del prompt).
+
+## Aggiornamenti automatici
+
+Il collegamento sul desktop avvia `avvia.py`, che prima di aprire l'overlay controlla
+le **Release** di questo repository:
+
+- se c'è una versione più nuova di quella installata (`VERSION`), salva un backup,
+  installa la nuova e aggiorna le librerie se `requirements.txt` è cambiato;
+- `config.json` (PIN e impostazioni della cassa) **non viene mai sovrascritto**:
+  le impostazioni nuove introdotte da una versione vengono solo aggiunte;
+- una release con errori di sintassi viene rifiutata prima di toccare qualsiasi file;
+- se la nuova versione va in errore entro 30 s, si torna da soli alla precedente;
+- se l'overlay si chiude per un errore viene riavviato (massimo 5 volte all'ora).
+
+Dall'area personale, il tasto **Aggiorna** cerca subito una nuova versione senza riavviare il PC.
+
+**Pubblicare un aggiornamento**: fai commit e push su `main` (la cassa non cambia),
+poi su GitHub → *Releases* → *Draft a new release* → tag più alto dell'ultimo
+(es. `v1.2.0`) → *Publish*. Al successivo avvio, o premendo *Aggiorna*, la cassa si aggiorna.
 
 ## Adattarlo a un altro negozio con Passepartout Retail
 

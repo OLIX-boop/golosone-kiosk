@@ -2,7 +2,7 @@
 # Usa Python senza finestra nera (pyw/pythonw): niente prompt da chiudere o da toccare per sbaglio.
 param([switch]$Admin)
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$app = Join-Path $dir 'app.py'
+$app = Join-Path $dir 'avvia.py'
 $pyw = (Get-Command pyw.exe -ErrorAction SilentlyContinue).Source
 if (-not $pyw) { $pyw = (Get-Command pythonw.exe -ErrorAction SilentlyContinue).Source }
 $exe = Join-Path $dir 'dist\GolosoneKiosk.exe'
