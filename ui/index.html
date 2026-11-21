@@ -114,6 +114,35 @@
     animation:spin .9s linear infinite; margin-bottom:1vh}
   @keyframes spin{to{transform:rotate(360deg)}}
   #failAmt{font-size:6vh}
+  /* FINE PAGAMENTO: un solo colpo d'occhio */
+  #thanks{justify-content:space-between!important; gap:2vh!important; padding-top:2vh}
+  #thanks .paid{display:flex; align-items:center; gap:1.6vw; font-size:5vh; font-weight:800; color:var(--ok)}
+  #thanks .paid .icon{width:8vh; height:8vh; margin:0}
+  #thanks .paid .icon svg{width:5vh; height:5vh}
+  #thanks h2{font-size:min(8vh,8.6vw)}
+  #thanks h2 em{font-style:normal; color:var(--wine)}
+  #thanks .scene{flex:1; min-height:0; max-height:52vh; width:100%}
+  .s-ink{stroke:#B9ABA9; stroke-width:1.5; stroke-linecap:round}
+  .s-ctop{fill:var(--wine-soft)} .s-cfront{fill:var(--wine-line)}
+  .s-shadow{fill:rgba(111,48,49,.12)}
+  .s-bfront{fill:#E8DDDB} .s-btop{fill:#F5EEEC} .s-bside{fill:#D6C7C4}
+  .s-sback{fill:#1A1110} .s-sframe{fill:#3A2B2A}
+  .s-ui{fill:var(--wine)} .s-uibtn{fill:var(--ok)}
+  .s-uiline{stroke:#CDBFBD; stroke-width:4; stroke-linecap:round}
+  .s-slot{fill:var(--ink)}
+  .s-glow{fill:none; stroke:var(--wine); stroke-width:3; stroke-linejoin:round; opacity:0;
+    transform-box:fill-box; transform-origin:center; animation:glow 3.2s ease-out infinite}
+  .s-paper{fill:#fff; stroke:#B3A3A0; stroke-width:1.4; stroke-linejoin:round}
+  .s-ink{stroke:#B9ABA9; stroke-width:2; stroke-linecap:round} .s-ink.b{stroke:#6E5E5C; stroke-width:3}
+  .rc-grow{animation:rcGrow 3.2s linear infinite}
+  .rc-move{transform-box:view-box; transform-origin:300px 252px; animation:tear 3.2s ease-in-out infinite}
+  @keyframes glow{0%{opacity:.9; transform:scale(1)} 30%{opacity:0; transform:scale(1.8)} 100%{opacity:0}}
+  @keyframes rcGrow{0%{transform:translate(-128px,-10px)} 35%,100%{transform:none}}  /* esce dalla fessura come da una stampante vera */
+  /* esce, piccolo strappo, si stacca e scivola verso il cliente */
+  @keyframes tear{0%,48%{transform:none; opacity:1} 52%{transform:rotate(-3deg)} 56%{transform:rotate(2deg)}
+    60%{transform:translate(6px,0) rotate(0); opacity:1}
+    88%,100%{transform:translate(120px,30px) rotate(10deg) scale(1.15); opacity:0}}
+  body:has(#thanks.on) footer{visibility:hidden}
 
   footer{padding:1.6vh 4vw 2.2vh; font-size:1.9vh; color:var(--muted); text-align:center; font-weight:500}
   footer b{color:var(--wine)}
@@ -210,9 +239,41 @@
   </section>
 
   <section class="screen" id="thanks">
-    <div class="icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-    <h2>Grazie!</h2>
-    <p>Pagamento completato. Buona giornata e a presto!</p>
+    <div class="paid"><span class="icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Pagato</div>
+    <h2>Ritira lo scontrino<br><em>sotto lo schermo</em></h2>
+    <!-- vista laterale: banco, chiosco con schermo inclinato, scontrino che esce e mano che lo prende -->
+    <!-- vista di 3/4: banco, chiosco con schermo inclinato di 15 gradi, scontrino che esce e si stacca -->
+    <svg class="scene" viewBox="125 25 390 300" aria-hidden="true">
+      <defs>
+        <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EFE6E4"/>
+        </linearGradient>
+        <clipPath id="cSlot"><path d="M210 330V304L402 178V0H600V330Z"/></clipPath>
+      </defs>
+      <!-- banco -->
+      <path class="s-ctop" d="M140 300H430L470 270H180Z"/>
+      <rect class="s-cfront" x="140" y="300" width="290" height="20"/>
+      <ellipse class="s-shadow" cx="250" cy="287" rx="90" ry="9"/>
+      <!-- corpo del chiosco -->
+      <path class="s-bfront" d="M170 222H270V290H170Z"/>
+      <path class="s-btop" d="M170 222H270L310 196H210Z"/>
+      <path class="s-bside" d="M270 222L310 196V264L270 290Z"/>
+      <!-- schermo: retro, cornice, vetro (15 gradi all'indietro) -->
+      <path class="s-sback" d="M245 222L281 198.6L239.6 44L203.6 67.5Z"/>
+      <path class="s-sframe" d="M254 219L290 195.6L248.6 41L212.6 64.5Z"/>
+      <path fill="url(#gGlass)" d="M256.3 208.5L283.6 190.7L246.4 51.6L219 69.4Z"/>
+      <path class="s-ui" d="M219 69.4L246.4 51.6L249.6 63.6L222.2 81.4Z"/>
+      <path class="s-uiline" d="M229 97L240 90M232 109L243 102M235 121L246 114M238 133L249 126"/>
+      <path class="s-uibtn" d="M246 172L268 157.7L273 176.3L251 190.6Z"/>
+      <!-- fessura della stampante, sotto lo schermo -->
+      <path class="s-slot" d="M274 262L306 241V236L274 257Z"/>
+      <!-- scontrino -->
+      <g clip-path="url(#cSlot)"><g class="rc-move"><g class="rc-grow">
+        <path class="s-paper" d="M276 259L304 240Q352 240 400 248L397.4 251.6L388.8 255.2L386.2 258.8L377.6 262.4L372 266Q324 266 276 259Z"/>
+        <path class="s-ink" d="M292 257L310 245.5M308 258.5L328 246M326 260L338 252.5M344 261.5L366 247.5"/>
+        <path class="s-ink b" d="M358 263L374 252.5"/>
+      </g></g></g>
+    </svg>
   </section>
 
   <section class="screen" id="offline">
@@ -306,7 +367,7 @@ async function tick(){
     if(cart){ renderCart(s); show("cart"); } else show("idle");
   }catch(e){ console.log(e); }
 }
-function thanks(){ show("thanks"); setTimeout(()=>{ if(view==="thanks") show("idle"); }, 4000); }
+function thanks(){ show("thanks"); setTimeout(()=>{ if(view==="thanks") show("idle"); }, 6000); }
 function payFail(msg){ $("failMsg").textContent=msg; $("failAmt").textContent=$("tot").textContent; show("payfail"); }
 function renderCart(s){
   $("tot").textContent = money(s.total);
